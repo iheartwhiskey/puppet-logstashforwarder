@@ -48,6 +48,10 @@ define logstashforwarder::service::init{
         $service_ensure = undef
         $service_enable = false
       }
+      'supervisord': {
+        $service_ensure = undef
+        $service_enable = false
+      }
       # unknown status
       # note: don't forget to update the parameter check in init.pp if you
       #       add a new or change an existing status.
@@ -72,7 +76,7 @@ define logstashforwarder::service::init{
   }
 
 
-  if ( $logstashforwarder::status != 'unmanaged' ) {
+  if ( $logstashforwarder::status != 'unmanaged' and $logstashforwarder::status != 'supervisord') {
 
     # defaults file content. Either from a hash or file
     if ($logstashforwarder::init_defaults_file != undef) {
@@ -117,6 +121,22 @@ define logstashforwarder::service::init{
 
     }
 
+  }
+
+  if ($logstashforwarder::status == 'supervisord') {
+      Class['supervisord']
+      ->
+      supervisord::program {'logstash-forwarder': 
+        command         => "${logstashforwarder::installpath}/bin/logstash-forwarder -config=${logstashforwarder::configdir}/config.json",
+        user            => $logstashforwarder_user, 
+        priority        => '100',
+        environment     => {
+            'PATH'      => '/bin:/sbin:/usr/bin:/usr/sbin/',
+        },
+        autostart       => true,
+        autorestart     => true,
+        redirect_stderr => true,
+      }
   }
 
   # action
