@@ -134,7 +134,7 @@ define logstashforwarder::service::init{
             'PATH'      => '/bin:/sbin:/usr/bin:/usr/sbin/',
         },
         autostart       => true,
-        autorestart     => true,
+        autorestart     => 'true',
         redirect_stderr => true,
       }
   }
